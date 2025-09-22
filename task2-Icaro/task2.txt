@@ -1,0 +1,16 @@
+Task 2 – Otimização de Controlador - Prof. Ícaro
+    - Controle inteligente — atividade do professor Ícaro  
+    - Implementar:  
+        - Poliedros flexíveis  
+        - Algoritmos genéticos  
+        - Enxame de partículas  
+    - Utilizar os métodos acima para otimizar os parâmetros Kp, Ki, Kd de um candidato PID.  
+      O critério de desempenho deve seguir Goodhart, com função de custo definida.  
+    - Plotar:  
+        - Comportamento sem controle (malha aberta)  
+        - Comportamento em malha-fechada (realimentação unitária → Kp = 1, Kd = 0, Ki = 0)  
+        - Comportamento com o controlador PID otimizado 
+
+Ficamos com meta-heuristica Particle Swarm Optimization (PSO) - (Enxame de partícula), 
+para identificar quais os melhores paramêtros para kp, ki e kd. 
+
