@@ -103,15 +103,14 @@ for i in range(n_part):
     particles.append(p)
     velocity.append([random.uniform(-veloc_max[j],veloc_max[j]) for j in range(3)])
     pbest.append(p[:])
-    pbest_fit.append(float('inf'))
+    pbest_fit.append(calcular_itaite(*p))
 
-gbest = particles[0][:]
-gbest_fit = calcular_itaite(*gbest)
+gbest = pbest[0][:]
+gbest_fit = pbest_fit[0]
 for i in range(1,n_part):
-    f = calcular_itaite(*particles[i])
-    if f < gbest_fit:
-        gbest_fit = f
-        gbest = particles[i][:]
+    if pbest_fit[i] < gbest_fit:
+        gbest_fit = pbest_fit[i]
+        gbest = pbest[i][:]
 
 print("Busca Inicial:", gbest, gbest_fit)
 
@@ -121,9 +120,9 @@ for it in range(max_iter):
         if f < pbest_fit[i]:
             pbest_fit[i] = f
             pbest[i] = particles[i][:]
-        if f < gbest_fit:
-            gbest_fit = f
-            gbest = particles[i][:]
+            if f < gbest_fit:
+                gbest_fit = f
+                gbest = particles[i][:]
     for i in range(n_part):
         for d in range(3):
             r1 = random.random()
