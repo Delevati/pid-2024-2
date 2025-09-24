@@ -84,47 +84,56 @@ def calcular_itaite(kp, ki, kd):
     j = 1.0*ita + 10.0*esa
     return j
 
-part = []
-vel = []
+# Daqui em diante é o PSO
+#
+# particles: cada uma é um conjunto de valores (k_p, k_i, k_d) que o algoritmo vai testar
+# velocity: define como cada partícula se move pelo espaço de busca
+# pbest: melhor resultado que cada partícula já achou
+# gbest: melhor resultado geral de todas as partículas
+# 
+# A ideia é: cada partícula vai testando valores diferentes e se move em direção
+# ao que ela achou de melhor (pbest) e ao que o grupo todo achou de melhor (gbest)
+particles = []
+velocity = []
 pbest = []
 pbest_fit = []
 
 for i in range(n_part):
     p = [random.uniform(lim[j][0],lim[j][1]) for j in range(3)]
-    part.append(p)
-    vel.append([random.uniform(-veloc_max[j],veloc_max[j]) for j in range(3)])
+    particles.append(p)
+    velocity.append([random.uniform(-veloc_max[j],veloc_max[j]) for j in range(3)])
     pbest.append(p[:])
     pbest_fit.append(float('inf'))
 
-gbest = part[0][:]
+gbest = particles[0][:]
 gbest_fit = calcular_itaite(*gbest)
 for i in range(1,n_part):
-    f = calcular_itaite(*part[i])
+    f = calcular_itaite(*particles[i])
     if f < gbest_fit:
         gbest_fit = f
-        gbest = part[i][:]
+        gbest = particles[i][:]
 
 print("Busca Inicial:", gbest, gbest_fit)
 
 for it in range(max_iter):
     for i in range(n_part):
-        f = calcular_itaite(*part[i])
+        f = calcular_itaite(*particles[i])
         if f < pbest_fit[i]:
             pbest_fit[i] = f
-            pbest[i] = part[i][:]
+            pbest[i] = particles[i][:]
         if f < gbest_fit:
             gbest_fit = f
-            gbest = part[i][:]
+            gbest = particles[i][:]
     for i in range(n_part):
         for d in range(3):
             r1 = random.random()
             r2 = random.random()
-            vel[i][d] = (peso_inercia*vel[i][d] +
-                         peso_local*r1*(pbest[i][d]-part[i][d]) +
-                         peso_global*r2*(gbest[d]-part[i][d]))
-            vel[i][d] = max(-veloc_max[d], min(veloc_max[d], vel[i][d]))
-            part[i][d] += vel[i][d]
-            part[i][d] = max(lim[d][0], min(lim[d][1], part[i][d]))
+            velocity[i][d] = (peso_inercia*velocity[i][d] +
+                         peso_local*r1*(pbest[i][d]-particles[i][d]) +
+                         peso_global*r2*(gbest[d]-particles[i][d]))
+            velocity[i][d] = max(-veloc_max[d], min(veloc_max[d], velocity[i][d]))
+            particles[i][d] += velocity[i][d]
+            particles[i][d] = max(lim[d][0], min(lim[d][1], particles[i][d]))
     if it%5==0:
         print(f"Iter {it}: {gbest_fit:.6f}")
 
