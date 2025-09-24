@@ -83,6 +83,7 @@ def calcular_itaite(kp, ki, kd):
     
     j = 1.0*ita + 10.0*esa
     return j
+
 """
 Daqui por diante é o PSO (Particle Swarm Optimization)
 
