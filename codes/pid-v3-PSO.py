@@ -22,13 +22,15 @@ tf = 2.0
 ts_ms = 1
 dt = ts_ms/1000.0
 
-n_part = 10
-max_iter = 20
-lim = [(0.0,500.0),(0.0,500.0),(0.0,100.0)]
+n_part = 30
+max_iter = 50
+lim = [(0.01, 100.0),    # kp: ganho proporcional
+       (0.0, 50.0),     # ki: ganho integral  
+       (0.0, 10.0)]     # kd: ganho derivativo
 
-peso_inercia = 0.7
-peso_local = 1.5
-peso_global = 1.5
+peso_inercia = 0.9
+peso_local = 1.2
+peso_global = 1.2
 veloc_max = [(b[1]-b[0])*0.2 for b in lim]
 
 def motor_model(x1_m, u, a, k):
@@ -38,6 +40,10 @@ def motor_model(x1_m, u, a, k):
 def motor_controller(tau, tau_ref, taup_ref, erro_acum, d_erro, k_p, k_i, k_d):
     erro = tau_ref - tau
     v = k_p * erro + k_i * ts_ms * erro_acum + k_d * d_erro / ts_ms
+
+    if abs(v) > 12.0:
+        v = np.sign(v) * 12.0
+        erro_acum = erro_acum - erro * dt
     return (a + a_model_error) * tau + v / (k + k_model_error)
 
 def connected_systems_model(states, t, tau_ref, taup_ref, erro_acum, d_erro, k_p, k_i, k_d):
@@ -46,9 +52,10 @@ def connected_systems_model(states, t, tau_ref, taup_ref, erro_acum, d_erro, k_p
     dx1_m = motor_model(x1_m, dc_volts, a, k)
     return [dx1_m]
 
-def calcular_itaite(kp, ki, kd):
+def calcular_funcao_objetivo(kp, ki, kd):
     """
-    Função Fitness usando as métricas de saída do ITA e ITE.
+    Função Objetivo pra alcançar um bom fitness (minimizar o erro) na otimização.
+    Minimiza ITA (erro acumulado) e ESA (erro estacionário).
     NOTA: Precisa implementar Goodhart ainda
     """
     n = int((1 / (ts_ms / 1000.0)) * tf + 1)
@@ -59,15 +66,20 @@ def calcular_itaite(kp, ki, kd):
     states = np.zeros((n, 1))
     states[0] = [0]
     erro_anterior = 0
-    
+    control_effort = 0
+
     for i in range(n-1):
         t_span = [time_vector[i], time_vector[i+1]]
-        tau = states[i, 0]
+        noise = np.random.normal(0, 0.01)
+        tau = states[i, 0] + noise
         tau_ref_i = torque_ref[i]
         taup_ref_i = torquep_ref[i]
         erro_atual = tau_ref_i - tau
-        erro_acum = erro_atual + erro_anterior
-        d_erro = erro_atual - erro_anterior
+        erro_acum = (erro_atual + erro_anterior) * dt
+        d_erro = (erro_atual - erro_anterior) / dt
+
+        v = kp * erro_atual + ki * erro_acum + kd * d_erro
+        control_effort += abs(v) * dt
         
         out_states = odeint(connected_systems_model, states[i], t_span,
                             args=(tau_ref_i, taup_ref_i, erro_acum, d_erro, kp, ki, kd))
@@ -76,13 +88,29 @@ def calcular_itaite(kp, ki, kd):
     
     tau = states[:, 0]
     erro = torque_ref - tau
-    
     ita = np.trapz(np.abs(erro), time_vector)
     steady_state_start = int(0.9 * n)
     esa = np.mean(np.abs(erro[steady_state_start:]))
-    
+    # Penalizações da FO
+    balance_penalty = 0
+    # Penaliza kp muito baixo em relação ao ki
+    if kp < ki * 0.2:
+        balance_penalty += (ki * 0.2 - kp) * 0.01
+    # Penaliza ki muito alto (windup)
+    if ki > 50:
+        balance_penalty += (ki - 50) * 0.005
+    # Penaliza kd muito baixo (PID sem derivativo)
+    if kd < 0.5:
+        balance_penalty += (0.5 - kd) * 0.05
+    # Penaliza kp, ki, kd altos
+    balance_penalty += max(0, kp - 80) * 0.05
+    balance_penalty += max(0, ki - 40) * 0.05
+    balance_penalty += max(0, kd - 8) * 0.05
+
+    effort_penalty = control_effort * 0.01
+
     j = 1.0*ita + 10.0*esa
-    return j
+    return j + balance_penalty + effort_penalty
 
 """
 Daqui por diante é o PSO (Particle Swarm Optimization)
@@ -105,7 +133,7 @@ for i in range(n_part):
     particles.append(p)
     velocity.append([random.uniform(-veloc_max[j],veloc_max[j]) for j in range(3)])
     pbest.append(p[:])
-    pbest_fit.append(calcular_itaite(*p))
+    pbest_fit.append(calcular_funcao_objetivo(*p))
 
 gbest = pbest[0][:]
 gbest_fit = pbest_fit[0]
@@ -118,13 +146,15 @@ print("Busca Inicial:", gbest, gbest_fit)
 
 for it in range(max_iter):
     for i in range(n_part):
-        f = calcular_itaite(*particles[i])
+        f = calcular_funcao_objetivo(*particles[i])
         if f < pbest_fit[i]:
             pbest_fit[i] = f
             pbest[i] = particles[i][:]
             if f < gbest_fit:
                 gbest_fit = f
                 gbest = particles[i][:]
+                print(f"Nova melhor solução na iter {it}: kp={gbest[0]:.3f}, ki={gbest[1]:.3f}, kd={gbest[2]:.3f} | fit={gbest_fit:.10f}")
+
     for i in range(n_part):
         for d in range(3):
             r1 = random.random()
@@ -135,7 +165,24 @@ for it in range(max_iter):
             velocity[i][d] = max(-veloc_max[d], min(veloc_max[d], velocity[i][d]))
             particles[i][d] += velocity[i][d]
             particles[i][d] = max(lim[d][0], min(lim[d][1], particles[i][d]))
-    if it%5==0:
-        print(f"Iter {it}: {gbest_fit:.6f}")
+
+            if random.random() < 0.15:
+                particles[i][d] = random.uniform(lim[d][0], lim[d][1])
+
+    if it % 3 == 0:
+        diversity = 0
+        for d in range(3):
+            values = [particles[i][d] for i in range(n_part)]
+            diversity += np.std(values)
+
+        if diversity < 5.0:
+            print(f"Baixa diversidade na iter {it}, reinicializando...")
+            for i in range(n_part//2):
+                particles[i] = [random.uniform(lim[j][0],lim[j][1]) for j in range(3)]
+                velocity[i] = [random.uniform(-veloc_max[j],veloc_max[j]) for j in range(3)]
+
+
+    if it % 5 == 0:
+        print(f"Iter {it}: {gbest_fit:.10f}")
 
 print("Final:", gbest, gbest_fit)
