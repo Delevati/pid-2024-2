@@ -1,3 +1,4 @@
+
 # PID 2024-2 - Atividades de Controle Inteligente
 
 Este repositório contém as implementações das atividades da disciplina de Controle Inteligente do semestre 2024-2.
@@ -12,11 +13,11 @@ Este repositório contém as implementações das atividades da disciplina de Co
 
 ### Task 2 – Otimização de Controlador - Prof. Ícaro
 
--**Status**: Primeira versão do PSO já existe, pid-v3.py.
+-**Status**: Existre uma primeira versão do PSO concluída (pid-v3.py)
 
 -**Análise necessária**
 
--**Descrição**: Otimização de parâmetros PID usando algoritmos de otimização
+-**Descrição**: Otimização de parâmetros kpkikd usando algoritmos de otimização
 
 ## Implementação
 
@@ -28,9 +29,9 @@ Sistema de irrigação por pivô central com controladores baseados em conhecime
 
 Comparação de três algoritmos de otimização para encontrar parâmetros ótimos de controlador PID (Kp, Ki, Kd):
 
-- [X] **Enxame de Partículas (PSO)** - Primeira versão implementada
-- [ ] **Poliedros Flexíveis (Simplex)** - Aguardando implementação dos colegas
-- [ ] **Algoritmos Genéticos** - Aguardando implementação dos colegas
+- [X] **Enxame de Partículas (PSO)** - Existe uma primeira versão
+- [ ] **Poliedros Flexíveis (Simplex)** - Aguardando
+- [ ] **Algoritmos Genéticos** - Aguardando
 
 Cada algoritmo deve ser testado nos seguintes cenários:
 
@@ -42,12 +43,12 @@ Cada algoritmo deve ser testado nos seguintes cenários:
 
 ### Task 1
 
-- [ ] Desenvolver regras de controle baseadas em conhecimento
-- [ ] Implementar sistema de irrigação
+- [ ] Definir regras de controle para o pivô
+- [ ] Modelar dinâmica do sistema
 
 ### Task 2
 
-- [ ] **Análise da implementação PSO atual**
+- [ ] **Validar convergência do PSO atual**
 - [ ] **Critério de Goodhart**: Substituir métricas ITA/ITE atuais
-- [ ] **Aguardar implementações**: Simplex e Algoritmos Genéticos dos colegas
-- [ ] **Plotagem**: Gerar gráficos comparativos dos três comportamentos
+- [ ] **Comparar performance dos três algoritmos**
+- [ ] **Documentar resultados dos três comportamentos**
