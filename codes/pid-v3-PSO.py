@@ -1,11 +1,22 @@
+"""
+Sistema de Controle PID com Otimização para k_p, k_i e k_d por Enxame de Partículas (PSO)
+
+O código simula um modelo do motor, com controlador e simulações para avaliar a diferença 
+entre a saída do sistema e a referência desejada.
+
+Nota: A função objetivo atualmente tá implementada com a saída ITA (Integral Time Absolute Error) 
+e ITE (Integral Time Error), não usei Goodhart porque já tava com essas métricas prontas na função. 
+TO DO: Precisa trocar ITA e ITE para aplicar o goodhart aqui.
+"""
+
 import numpy as np
 from scipy.integrate import odeint
 import random
 
 a = 0.05
 k = 2.0
-a_err = 0.1
-k_err = 0.3
+a_model_error = 0.1
+k_model_error = 0.3
 
 tf = 2.0
 ts_ms = 1
@@ -20,47 +31,57 @@ peso_local = 1.5
 peso_global = 1.5
 veloc_max = [(b[1]-b[0])*0.2 for b in lim]
 
-def motor_model(x1, u, a, k, a_err=0.0, k_err=0.0):
-    a_ef = a*(1+a_err)
-    k_ef = k*(1+k_err)
-    dx = -a_ef*k_ef*x1 + k_ef*u
-    return dx
+def motor_model(x1_m, u, a, k):
+    dx1_m = -a*k*x1_m + k*u
+    return dx1_m
 
-def motor_controller(e, e_acum, de, kp, ki, kd):
-    u = kp*e + ki*e_acum + kd*de
-    u = max(-1000.0, min(1000.0, u))
-    return u
+def motor_controller(tau, tau_ref, taup_ref, erro_acum, d_erro, k_p, k_i, k_d):
+    erro = tau_ref - tau
+    v = k_p * erro + k_i * ts_ms * erro_acum + k_d * d_erro / ts_ms
+    return (a + a_model_error) * tau + v / (k + k_model_error)
 
-def connected_systems_model(states, t, kp, ki, kd, ref, e_acum, e_ant):
-    x1 = states[0]
-    e = ref - x1
-    e_acum += e*dt
-    de = (e - e_ant)/dt
-    u = motor_controller(e, e_acum, de, kp, ki, kd)
-    dx = motor_model(x1, u, a, k, a_err, k_err)
-    return [dx]
+def connected_systems_model(states, t, tau_ref, taup_ref, erro_acum, d_erro, k_p, k_i, k_d):
+    x1_m = states[0]
+    dc_volts = motor_controller(x1_m, tau_ref, taup_ref, erro_acum, d_erro, k_p, k_i, k_d)
+    dx1_m = motor_model(x1_m, dc_volts, a, k)
+    return [dx1_m]
 
-def calcular_goodhart(kp, ki, kd):
-    n = int(tf/dt)+1
-    t_vec = np.linspace(0, tf, n)
-    ref = np.sin(t_vec)
-    states = np.zeros(n)
-    e_acum = 0.0
-    e_ant = 0.0
+def calcular_itaite(kp, ki, kd):
+    """
+    Função Fitness usando as métricas de saída do ITA e ITE.
+    NOTA: Precisa implementar Goodhart ainda
+    """
+    n = int((1 / (ts_ms / 1000.0)) * tf + 1)
+    time_vector = np.linspace(0, tf, n)
+    torque_ref = np.sin(time_vector)
+    torquep_ref = np.cos(time_vector)
+    
+    states = np.zeros((n, 1))
+    states[0] = [0]
+    erro_anterior = 0
+    
     for i in range(n-1):
-        t_span = [t_vec[i], t_vec[i+1]]
-        out_states = odeint(connected_systems_model, [states[i]], t_span,
-                            args=(kp, ki, kd, ref[i], e_acum, e_ant))
-        states[i+1] = out_states[-1,0]
-        e_ant = ref[i] - states[i]
-        e_acum += e_ant*dt
-    erro = ref - states
-    ita = np.trapz(np.abs(erro), t_vec)/tf
-    ss = int(0.9*n)
-    esa = np.mean(np.abs(erro[ss:]))
-    u_eff = np.mean(np.abs(kp*erro + ki*e_acum + kd*np.gradient(erro, dt)))
-    ov = max(0.0, np.max(states)-np.max(ref))
-    j = 1.0*ita + 10.0*esa + 0.1*u_eff + 50.0*ov
+        t_span = [time_vector[i], time_vector[i+1]]
+        tau = states[i, 0]
+        tau_ref_i = torque_ref[i]
+        taup_ref_i = torquep_ref[i]
+        erro_atual = tau_ref_i - tau
+        erro_acum = erro_atual + erro_anterior
+        d_erro = erro_atual - erro_anterior
+        
+        out_states = odeint(connected_systems_model, states[i], t_span,
+                            args=(tau_ref_i, taup_ref_i, erro_acum, d_erro, kp, ki, kd))
+        states[i+1] = out_states[-1]
+        erro_anterior = erro_atual
+    
+    tau = states[:, 0]
+    erro = torque_ref - tau
+    
+    ita = np.trapz(np.abs(erro), time_vector)
+    steady_state_start = int(0.9 * n)
+    esa = np.mean(np.abs(erro[steady_state_start:]))
+    
+    j = 1.0*ita + 10.0*esa
     return j
 
 part = []
@@ -76,9 +97,9 @@ for i in range(n_part):
     pbest_fit.append(float('inf'))
 
 gbest = part[0][:]
-gbest_fit = calcular_goodhart(*gbest)
+gbest_fit = calcular_itaite(*gbest)
 for i in range(1,n_part):
-    f = calcular_goodhart(*part[i])
+    f = calcular_itaite(*part[i])
     if f < gbest_fit:
         gbest_fit = f
         gbest = part[i][:]
@@ -87,7 +108,7 @@ print("Busca Inicial:", gbest, gbest_fit)
 
 for it in range(max_iter):
     for i in range(n_part):
-        f = calcular_goodhart(*part[i])
+        f = calcular_itaite(*part[i])
         if f < pbest_fit[i]:
             pbest_fit[i] = f
             pbest[i] = part[i][:]
