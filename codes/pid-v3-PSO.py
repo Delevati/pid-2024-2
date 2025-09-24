@@ -119,7 +119,7 @@ def calcular_funcao_objetivo(kp, ki, kd):
     return j + balance_penalty + effort_penalty
 
 """
-Daqui por diante é o PSO (Particle Swarm Optimization)
+Daqui por diante é o PSO (Particle Swarm Optimization), gera, testa e atualiza as combinações.
 
 particles: cada uma é um conjunto de valores (k_p, k_i, k_d) que o algoritmo vai testar
 velocity: como cada partícula se move pelo espaço de busca
