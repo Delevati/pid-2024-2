@@ -1,3 +1,7 @@
+import numpy as np
+from scipy.integrate import odeint
+import random
+
 """
 Sistema de Controle PID com Otimização para k_p, k_i e k_d por Enxame de Partículas (PSO)
 
@@ -8,10 +12,6 @@ Nota: A função objetivo atualmente tá implementada com a saída ITA (Integral
 e ITE (Integral Time Error), não usei Goodhart porque já tava com essas métricas prontas na função. 
 TO DO: Precisa trocar ITA e ITE para aplicar o goodhart aqui.
 """
-
-import numpy as np
-from scipy.integrate import odeint
-import random
 
 a = 0.05
 k = 2.0
@@ -25,8 +25,8 @@ dt = ts_ms/1000.0
 n_part = 30
 max_iter = 50
 lim = [(0.01, 100.0),    # kp: ganho proporcional
-       (0.0, 50.0),     # ki: ganho integral  
-       (0.0, 10.0)]     # kd: ganho derivativo
+       (0.0, 50.0),      # ki: ganho integral  
+       (0.0, 10.0)]      # kd: ganho derivativo
 
 peso_inercia = 0.9
 peso_local = 1.2
@@ -54,9 +54,15 @@ def connected_systems_model(states, t, tau_ref, taup_ref, erro_acum, d_erro, k_p
 
 def calcular_funcao_objetivo(kp, ki, kd):
     """
-    Função Objetivo pra alcançar um bom fitness (minimizar o erro) na otimização.
-    Minimiza ITA (erro acumulado) e ESA (erro estacionário).
-    NOTA: Precisa implementar Goodhart ainda
+    Função Objetivo pra alcançar um bom fitness (minimizar erro).
+    - Minimiza ITA (erro acumulado) e ESA (erro estacionário), com adicional das penalizações .
+    - O que tentei com as penalizações é evitar soluções exageradas, ou exageradas e ruins kkk. Adicionei ruído pra testar se o PID aguenta variação, coloquei
+    esforço de controle pra não deixar o PSO escolher ganho absurdo só pra baixar erro. Tem saturação no atuador, então não adianta querer um PID que 
+    pede mais do que o motor consegue. No fim, a função objetivo soma tudo isso, erro ITA, ESA e as penalizações pra tentar garantir que o controle
+    não seja exagerado nos parametros, ele tava buscando sempre o máximo.
+    
+    # NOTA1: Se isso não fizer sentido pra vocês avisem ou alterem, criem novas versões, não sei muita coisa de controlador e motor então essa parte de min e max dos parametros me pegou um pouco.
+    # NOTA2: Precisa implementar Goodhart ainda
     """
     n = int((1 / (ts_ms / 1000.0)) * tf + 1)
     time_vector = np.linspace(0, tf, n)
@@ -96,7 +102,7 @@ def calcular_funcao_objetivo(kp, ki, kd):
     # Penaliza kp muito baixo em relação ao ki
     if kp < ki * 0.2:
         balance_penalty += (ki * 0.2 - kp) * 0.01
-    # Penaliza ki muito alto (windup)
+    # Penaliza ki muito alto, é chamado de windup
     if ki > 50:
         balance_penalty += (ki - 50) * 0.005
     # Penaliza kd muito baixo (PID sem derivativo)
@@ -116,7 +122,7 @@ def calcular_funcao_objetivo(kp, ki, kd):
 Daqui por diante é o PSO (Particle Swarm Optimization)
 
 particles: cada uma é um conjunto de valores (k_p, k_i, k_d) que o algoritmo vai testar
-velocity: define como cada partícula se move pelo espaço de busca
+velocity: como cada partícula se move pelo espaço de busca
 pbest: melhor resultado que cada partícula já achou
 gbest: melhor resultado geral de todas as partículas
  
