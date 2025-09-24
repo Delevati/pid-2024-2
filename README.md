@@ -1,8 +1,6 @@
 
 # PID 2024-2 - Atividades de Controle Inteligente
 
-Este repositório contém as implementações das atividades da disciplina de Controle Inteligente do semestre 2024-2.
-
 ## Tarefas
 
 ### Task 1 – Controladores Baseados em Conhecimento - Prof. Glauber
