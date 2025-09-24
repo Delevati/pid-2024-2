@@ -83,16 +83,17 @@ def calcular_itaite(kp, ki, kd):
     
     j = 1.0*ita + 10.0*esa
     return j
+"""
+Daqui por diante é o PSO (Particle Swarm Optimization)
 
-# Daqui em diante é o PSO
-#
-# particles: cada uma é um conjunto de valores (k_p, k_i, k_d) que o algoritmo vai testar
-# velocity: define como cada partícula se move pelo espaço de busca
-# pbest: melhor resultado que cada partícula já achou
-# gbest: melhor resultado geral de todas as partículas
-# 
-# A ideia é: cada partícula vai testando valores diferentes e se move em direção
-# ao que ela achou de melhor (pbest) e ao que o grupo todo achou de melhor (gbest)
+particles: cada uma é um conjunto de valores (k_p, k_i, k_d) que o algoritmo vai testar
+velocity: define como cada partícula se move pelo espaço de busca
+pbest: melhor resultado que cada partícula já achou
+gbest: melhor resultado geral de todas as partículas
+ 
+A ideia é: cada partícula vai testando valores diferentes e se move em direção
+ao que ela achou de melhor (pbest) e ao que o grupo todo achou de melhor (gbest)
+"""
 particles = []
 velocity = []
 pbest = []
