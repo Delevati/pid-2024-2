@@ -1,6 +1,5 @@
 .DS_Store
 .venv/
 *.zip
-*.csv
 __pycache__/
 artigo/
