@@ -141,7 +141,7 @@ def atualizar_estado(estado, setores, obstaculos, parametros):
     taxa_perda = setor_atual["perda"] * fator_temp * vento * radiacao
     setor_atual["umidade"] -= taxa_perda * setor_atual["umidade"] * dt_real / 3600
     
-    # se tem chuva nao ligar pivo
+    # add - se tem chuva nao ligar pivo
     chuva = np.random.binomial(1, 0.01)
     if chuva:
         for setor in setores:
@@ -189,12 +189,6 @@ def atualizar_estado(estado, setores, obstaculos, parametros):
     resistencia_total *= declive_fator
     resistencia_total += 0.3 * (vazao_total / 100)
 
-    obstaculo_extra = 0
-    for obs in obstaculos:
-        if abs((ang_atual % 360) - obs) < 10:
-            obstaculo_extra = 400
-    resistencia_total += obstaculo_extra
-
     vel_desejada = 0.2 if modo_emergencia else 0.6
     erro_vel = vel_desejada - vel_angular
     torque_motor = min(torque_motor_max, 200.0 * erro_vel + resistencia_total)
@@ -204,12 +198,10 @@ def atualizar_estado(estado, setores, obstaculos, parametros):
     vel_angular = max(0.05, min(2.0, vel_angular))
     ang_atual = (ang_atual + vel_angular * dt_real / 60) % 360
 
-
     tempo_no_setor += dt_real / 60
     if int(ang_atual / 90) != setor_idx:
         tempo_no_setor = 0.0
 
-    # Retorna novo estado e variáveis auxiliares para visualização
     return {
         "ang_atual": ang_atual,
         "vel_angular": vel_angular,
@@ -231,7 +223,6 @@ def atualizar_estado(estado, setores, obstaculos, parametros):
         "vazoes_aspersores": vazoes_aspersores,
         "pressoes_aspersores": pressoes_aspersores,
         "vazao_total": vazao_total,
-        "obstaculo_extra": obstaculo_extra,
         "torque_motor": torque_motor,
         "declive": declive_graus,
         "estados_motores": estados_motores,
