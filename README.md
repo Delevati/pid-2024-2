@@ -10,7 +10,7 @@
 
 **O que é simulado:**
 
-- **Movimento do pivô central** com braço de 120 m (ajustável).
+- **Movimento do pivô central** com braço de 800m (ajustável).
 - **Motores independentes** ao longo do braço (ligam/desligam conforme declive, ponta nunca desliga).
 - **Declive real do terreno** (perfil interpolado a partir de dados reais).
 - **Setores de solo** com diferentes tipos, áreas e capacidades de retenção.
