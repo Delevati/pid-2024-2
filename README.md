@@ -16,6 +16,9 @@
 - **Setores de solo** com diferentes tipos, áreas e capacidades de retenção.
 - **Umidade do solo** dinâmica, com evaporação, chuva aleatória e irrigação.
 - **Controle crisp** para pressão e vazão, baseado em sensores simulados.
+  - Para pressão e vazão, baseado em sensores simulados.
+  - Para ativação dos motores (ligados se declive local > 3°).
+  - Para velocidade angular do pivô.
 - **Temperatura ambiente** com sazonalidade e variação diária.
 - **Visualização gráfica**: posição do pivô, setores, aspersores ativos, motores (ON/OFF), água aplicada, painel de variáveis em tempo real.
 
