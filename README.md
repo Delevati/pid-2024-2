@@ -28,7 +28,7 @@
 - Torque do motor principal
 - Declive do terreno (radial)
 - Estado de cada motor (ON/OFF, declive local)
-- Umidade real e sensoriada dos setores
+- Umidade "real" e sensoriada dos setores
 - Pressão e vazão do sistema
 - Temperatura ambiente
 - Consumo de água total e por setor
