@@ -1,13 +1,13 @@
 import numpy as np
 import numpy as np
-from input.perfil_terreno import get_altitude, get_declive
+from input.perfil_terreno import get_declive
 
 setores = [
     {"nome": "A", "umidade": 0.30, "capacidade": 0.45, "perda": 2.0/3600, "tipo": "Argiloso", "area_ha": 11.31},
     {"nome": "B", "umidade": 0.25, "capacidade": 0.40, "perda": 3.0/3600, "tipo": "Franco-argiloso", "area_ha": 11.31},
     {"nome": "C", "umidade": 0.35, "capacidade": 0.35, "perda": 4.0/3600, "tipo": "Franco", "area_ha": 11.31},
     {"nome": "D", "umidade": 0.20, "capacidade": 0.25, "perda": 6.0/3600, "tipo": "Arenoso", "area_ha": 11.31}
-]
+]   
 
 obstaculos = [90, 210]
 
@@ -17,7 +17,7 @@ parametros = {
     "resistencia_base": 80.0,
     "dt": 1.0,
     "fator_aceleracao_tempo": 10.0,
-    "comprimento_braco": 120.0,
+    "comprimento_braco": 800.0,
     "num_aspersores": 20,
     "vazao_por_aspersor_max": 150.0,
     "pressao_bomba_max": 8.0,
@@ -111,7 +111,7 @@ def atualizar_estado(estado, setores, obstaculos, parametros):
         if i == NUM_MOTORES - 1:
             ligado = True
         else:
-            ligado = abs(declive_motor) > 3.0
+            ligado = abs(declive_motor) > 8.0
         estados_motores.append({
             "pos": pos,
             "declive": declive_motor,
@@ -141,6 +141,7 @@ def atualizar_estado(estado, setores, obstaculos, parametros):
     taxa_perda = setor_atual["perda"] * fator_temp * vento * radiacao
     setor_atual["umidade"] -= taxa_perda * setor_atual["umidade"] * dt_real / 3600
     
+    # se tem chuva nao ligar pivo
     chuva = np.random.binomial(1, 0.01)
     if chuva:
         for setor in setores:
