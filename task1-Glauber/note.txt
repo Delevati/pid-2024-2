@@ -1,0 +1,20 @@
+1. Controle Crisp e Fuzzy
+Implemente funções separadas para controle crisp e fuzzy.
+Compare os resultados.
+2. Sensores
+Simule leitura de sensores de umidade (com ruído).
+Adicione sensores de posição do pivô.
+3. Clima
+Adicione variação de temperatura e umidade do ar.
+Simule influência do clima na evaporação/perda de água.
+4. Dinâmica do pivô
+Modele velocidade variável do pivô.
+Adicione arrasto/resistência do solo (torque extra dependendo do setor).
+5. Atuadores
+Simule falhas ou atrasos nos atuadores (bomba, motor).
+6. Protocolo de emergência
+Implemente lógica de emergência (ex: irrigação máxima se umidade crítica).
+7. Visualização avançada
+Plote gráficos de sensores, clima, velocidade do pivô, status de emergência.
+8. Interface interativa (opcional)
+Use Dash ou Streamlit para criar um painel interativo.

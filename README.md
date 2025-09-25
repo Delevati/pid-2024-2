@@ -1,52 +1,58 @@
 
 # PID 2024-2 - Atividades de Controle Inteligente
 
-## Tarefas
+## Task 1 – Simulação de Pivô Central com Controle Baseado em Conhecimento
 
-### Task 1 – Controladores Baseados em Conhecimento - Prof. Glauber
+**Status:**
 
--**Status**: Projeto definido, faltam as regras de controle
+- Simulação crisp funcionando, tem de melhorar, mas tá funcionando.
+- Visualização em tempo real do pivô, setores, aspersores, motores e variáveis do sistema.
 
--**Descrição**: Sistema de irrigação com pivô central usando controladores baseados em conhecimento
+**O que é simulado:**
 
-### Task 2 – Otimização de Controlador - Prof. Ícaro
+- **Movimento do pivô central** com braço de 120 m (ajustável).
+- **Motores independentes** ao longo do braço (ligam/desligam conforme declive, ponta nunca desliga).
+- **Declive real do terreno** (perfil interpolado a partir de dados reais).
+- **Setores de solo** com diferentes tipos, áreas e capacidades de retenção.
+- **Umidade do solo** dinâmica, com evaporação, chuva aleatória e irrigação.
+- **Controle crisp** para pressão e vazão, baseado em sensores simulados.
+- **Temperatura ambiente** com sazonalidade e variação diária.
+- **Visualização gráfica**: posição do pivô, setores, aspersores ativos, motores (ON/OFF), água aplicada, painel de variáveis em tempo real.
 
--**Status**: Existre uma primeira versão do PSO concluída (pid-v3.py)
+**Principais variáveis monitoradas:**
 
--**Análise necessária**
+- Ângulo e velocidade do pivô
+- Torque do motor principal
+- Declive do terreno (radial)
+- Estado de cada motor (ON/OFF, declive local)
+- Umidade real e sensoriada dos setores
+- Pressão e vazão do sistema
+- Temperatura ambiente
+- Consumo de água total e por setor
 
--**Descrição**: Otimização de parâmetros kpkikd usando algoritmos de otimização
+**Próximos passos:**
 
-## Implementação
+- Definir e implementar regras de controle detalhadas.
+- Integrar controle fuzzy para comparação.
+- Ajustar critérios de ativação dos motores intermediários.
+- Explorar otimização de consumo energético.
 
-### Task 1
+---
 
-Sistema de irrigação por pivô central com controladores baseados em conhecimento.
+## Task 2 – Otimização de Controlador (Prof. Ícaro)
 
-### Task 2
+- **Status:** Primeira versão do PSO concluída (`pid-v3.py`).
+- **Descrição:** Otimização de parâmetros Kp, Ki, Kd usando algoritmos de otimização.
+- **Próximos passos:**
+  - Validar convergência do PSO.
+  - Implementar Simplex e Algoritmos Genéticos.
+  - Comparar desempenho dos três algoritmos.
 
-Comparação de três algoritmos de otimização para encontrar parâmetros ótimos de controlador PID (Kp, Ki, Kd):
+---
 
-- [X] **Enxame de Partículas (PSO)** - Existe uma primeira versão
-- [ ] **Poliedros Flexíveis (Simplex)** - Aguardando
-- [ ] **Algoritmos Genéticos** - Aguardando
+## Estrutura dos principais arquivos da task 1
 
-Cada algoritmo deve ser testado nos seguintes cenários:
-
-- Comportamento sem controle (malha aberta)
-- Comportamento em malha fechada unitária
-- Comportamento com PID otimizado
-
-## Pendências
-
-### Task 1
-
-- [ ] Definir regras de controle para o pivô
-- [ ] Modelar dinâmica do sistema
-
-### Task 2
-
-- [ ] **Validar convergência do PSO atual**
-- [ ] **Critério de Goodhart**: Substituir métricas ITA/ITE atuais
-- [ ] **Comparar performance dos três algoritmos**
-- [ ] **Documentar resultados dos três comportamentos**
+- `modelo.py` — Lógica da simulação física, controle crisp, dinâmica dos motores, umidade, pressão, etc.
+- `visual.py` — Visualização gráfica e painel de variáveis em tempo real.
+- `input/perfil_terreno.py` — Interpolação do perfil de terreno (altitude e declive radial).
+- `simula-run.py` — Script principal para rodar a simulação.
