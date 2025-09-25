@@ -47,8 +47,8 @@
 - **Status:** Primeira versão do PSO concluída (`pid-v3.py`).
 - **Descrição:** Otimização de parâmetros Kp, Ki, Kd usando algoritmos de otimização.
 - **Próximos passos:**
-  - Validar convergência do PSO.
-  - Implementar Simplex e Algoritmos Genéticos.
+  - Validar PSO.
+  - Aguardar Simplex e Algoritmos Genéticos.
   - Comparar desempenho dos três algoritmos.
 
 ---
