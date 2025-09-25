@@ -15,7 +15,7 @@
 - **Declive real do terreno** (perfil interpolado a partir de dados reais).
 - **Setores de solo** com diferentes tipos, áreas e capacidades de retenção.
 - **Umidade do solo** dinâmica, com evaporação, chuva aleatória e irrigação.
-- **Controle crisp** para pressão e vazão, baseado em sensores simulados.
+- **Controle crisp** baseado em sensores simulados:
   - Para pressão e vazão, baseado em sensores simulados.
   - Para ativação dos motores (ligados se declive local > 3°).
   - Para velocidade angular do pivô.
